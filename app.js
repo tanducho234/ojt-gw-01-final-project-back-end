@@ -39,13 +39,11 @@ app.use('/api/products', productRoutes);
 //documentation
 const swaggerUi = require("swagger-ui-express");
 const specs = require("./docs/swagger"); // Import the Swagger configuration
-
-// ... (previous code)
-// Serve Swagger UI
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
-
-
-
-// app.use('/api/products', productRoutes);
+const CSS_URL =
+  "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css";
+app.use(
+    "/api-docs",swaggerUi.serve,
+    swaggerUi.setup(specs, { customCssUrl: CSS_URL })
+  );
 
 module.exports = app;
