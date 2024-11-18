@@ -1,4 +1,36 @@
 // routes/auth.js
+/**
+ * @swagger
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *       400:
+ *         description: Registration failed
+ */
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -11,14 +43,41 @@ const dotenv = require("dotenv");
 dotenv.config();
 const secretKey = process.env.JWT_SECRET;
 // Đăng ký người dùng
+
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - role
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *       400:
+ *         description: Registration failed
+ */
 router.post("/register", async (req, res) => {
-  const { email, password, role } = req.body;
+  const { email, password } = req.body;
   try {
     // Hash password before saving
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    
-    const user = new User({ email, password: hashedPassword, role });
+    const user = new User({ email, password: hashedPassword });
     await user.save();
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
@@ -27,6 +86,41 @@ router.post("/register", async (req, res) => {
 });
 
 // Đăng nhập người dùng
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: tanducho234@gmail.com 
+ *               password:
+ *                 type: string
+ *                 example: 123
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *       401:
+ *         description: Invalid email or password
+ */
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
@@ -37,15 +131,46 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign({ id: user._id, role: user.role }, secretKey, {
     expiresIn: "1d",
   });
-  res.json({ token });
-});
+  res.json({ token, role: user.role });});
 
 // Route chỉ dành cho admin
+/**
+ * @swagger
+ * /api/auth/admin:
+ *   get:
+ *     summary: Admin only route
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Welcome message for admin
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 router.get("/admin", authenticate, authorize(["admin"]), (req, res) => {
   res.json({ message: "Welcome, admin!" });
 });
 
 // Route dành cho user và admin
+/**
+ * @swagger
+ * /api/auth/user:
+ *   get:
+ *     summary: User and admin route
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Welcome message for user
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 router.get("/user", authenticate, authorize(["user", "admin"]), (req, res) => {
   res.json({ message: "Welcome, user!" });
 });

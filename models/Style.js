@@ -9,11 +9,9 @@ const styleSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: true,
   },
   imgLink: {
     type: String,
-    required: true,
   },
 });
 

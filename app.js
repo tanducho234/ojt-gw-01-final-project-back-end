@@ -27,16 +27,22 @@ const productRoutes = require('./routes/productRoutes');
 const voucherRoutes = require('./routes/voucherRoutes');
 const brandRoutes = require('./routes/brandRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
+const styleRoutes = require('./routes/styleRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/vouchers', voucherRoutes);
 app.use('/api/brands', brandRoutes);  
-//route for category
 app.use('/api/categories', categoryRoutes);
+app.use('/api/styles', styleRoutes);
+app.use('/api/products', productRoutes);
 
+//documentation
+const swaggerUi = require("swagger-ui-express");
+const specs = require("./docs/swagger"); // Import the Swagger configuration
 
-
-
+// ... (previous code)
+// Serve Swagger UI
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 
 
