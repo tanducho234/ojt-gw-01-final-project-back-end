@@ -9,12 +9,13 @@ var app = express();
 
 // Add CORS middleware to allow cross-origin requests
 const cors = require('cors');
+app.use(cors());
+//db
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
-}));//db
-const connectDB = require('./config/db');
+}));const connectDB = require('./config/db');
 connectDB()
 
 
@@ -32,6 +33,7 @@ const brandRoutes = require('./routes/brandRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const styleRoutes = require('./routes/styleRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const cartRoutes = require('./routes/cartRoutes');
 
 
 app.use('/api/auth', authRoutes);
@@ -41,6 +43,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/styles', styleRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/carts', cartRoutes);
 
 //documentation
 const swaggerUi = require("swagger-ui-express");

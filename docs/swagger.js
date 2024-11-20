@@ -6,9 +6,9 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "comp1682-node api documentation",
+      title: "OJT FINAL",
       version: "1.0.0",
-      description: "API documentation for comp1682-node course. User account: user@gmail.com. Pass:123.  Admin Account: tanducho234@gmail.com. Pass:123",
+      description: "User account: user@gmail.com. Pass:123.  Admin Account: tanducho234@gmail.com. Pass:123",
     },
     servers: [
       {

@@ -72,12 +72,12 @@ const secretKey = process.env.JWT_SECRET;
  *         description: Registration failed
  */
 router.post("/register", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, fullName } = req.body;
   try {
     // Hash password before saving
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const user = new User({ email, password: hashedPassword });
+    const user = new User({ email, password: hashedPassword, fullName });
     await user.save();
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
@@ -104,7 +104,7 @@ router.post("/register", async (req, res) => {
  *             properties:
  *               email:
  *                 type: string
- *                 example: tanducho234@gmail.com 
+ *                 example: tanducho234@gmail.com
  *               password:
  *                 type: string
  *                 example: 123
@@ -131,7 +131,8 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign({ id: user._id, role: user.role }, secretKey, {
     expiresIn: "1d",
   });
-  res.json({ token, role: user.role });});
+  res.json({ token, role: user.role });
+});
 
 // Route chỉ dành cho admin
 /**
@@ -173,6 +174,42 @@ router.get("/admin", authenticate, authorize(["admin"]), (req, res) => {
  */
 router.get("/user", authenticate, authorize(["user", "admin"]), (req, res) => {
   res.json({ message: "Welcome, user!" });
+});
+
+
+// Check valid JWT token route
+/**
+ * @swagger
+ * /api/auth/verify:
+ *   get:
+ *     summary: Verify JWT token
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token is valid
+ *       401:
+ *         description: Invalid or expired token
+ */
+router.get("/verify", authenticate, (req, res) => {
+  try {
+    // Token is already verified by authenticate middleware
+    // Just return success response
+    res.status(200).json({ 
+      valid: true,
+      message: "Token is valid",
+      user: {
+        id: req.user.id,
+        role: req.user.role
+      }
+    });
+  } catch (error) {
+    res.status(401).json({ 
+      valid: false,
+      message: "Invalid or expired token" 
+    });
+  }
 });
 
 module.exports = router;
