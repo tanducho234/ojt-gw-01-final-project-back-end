@@ -44,8 +44,12 @@ exports.getRandomTopReviews = async (req, res) => {
       { $match: { rating: 5 } },
       { $sample: { size: 5 } },
     ]);
-
-    res.status(200).json(reviews);
+    const populatedReviews = await Review.populate(reviews, {
+      path: 'userId',                  // Trường cần populate
+      select: 'fullName'                      // Chỉ lấy trường 'name' của Product
+    });
+    
+    res.status(200).json(populatedReviews);
   } catch (error) {
     console.error('Lỗi khi lấy random review:', error);
     res.status(500).json({ message: 'Không thể lấy review.' });
