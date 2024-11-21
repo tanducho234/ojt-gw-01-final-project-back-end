@@ -1,4 +1,6 @@
 const Cart = require("../models/Cart");
+const Product = require("../models/Product");
+
 
 // Thêm sản phẩm vào giỏ hàng
 exports.addProductToCart = async (req, res) => {
@@ -122,14 +124,50 @@ exports.getUserCart = async (req, res) => {
   const userId = req.user._id; // Lấy userId từ req.user
 
   try {
-    const cart = await Cart.findOne({ userId }).populate("products.productId");
+    // Lấy giỏ hàng của người dùng
+    const cart = await Cart.findOne({ userId });
 
     if (!cart) {
       return res.status(404).json({ message: "Cart not found." });
     }
 
-    res.status(200).json(cart);
+    // Xử lý dữ liệu giỏ hàng để thêm tên, ảnh và giá
+    const cartWithDetails = await Promise.all(
+      cart.products.map(async (item) => {
+        // Tìm sản phẩm liên quan
+        const product = await Product.findById(item.productId);
+
+        if (!product) {
+          throw new Error(`Product with ID ${item.productId} not found.`);
+        }
+
+        // Lọc thông tin phù hợp với màu sắc và kích thước
+        const colorDetails = product.colors.find((c) => c.color === item.color);
+
+        if (!colorDetails) {
+          throw new Error(`Color ${item.color} not found for product ${product.name}.`);
+        }
+
+        const sizeDetails = colorDetails.sizes.find((s) => s.size === item.size);
+
+        if (!sizeDetails) {
+          throw new Error(`Size ${item.size} not found for product ${product.name} in color ${item.color}.`);
+        }
+
+        return {
+          productId: item.productId,
+          name: product.name,
+          color: item.color,
+          size: item.size,
+          quantity: item.quantity,
+          price: sizeDetails.price,
+          imgLink: colorDetails.imgLinks[0], // Lấy ảnh đầu tiên của màu sắc
+        };
+      })
+    );
+
+    res.status(200).json(cartWithDetails);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch cart.", error });
+    res.status(500).json({ message: "Failed to fetch cart.", error: error.message });
   }
 };

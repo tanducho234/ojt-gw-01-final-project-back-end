@@ -35,6 +35,8 @@ const styleRoutes = require('./routes/styleRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 
+//upload img route
+// app.use('/uploads',);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/vouchers', voucherRoutes);
