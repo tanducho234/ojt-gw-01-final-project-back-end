@@ -34,10 +34,10 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const styleRoutes = require('./routes/styleRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const cartRoutes = require('./routes/cartRoutes');
+const uploadImagesRoutes = require('./routes/uploadImagesRoutes');
 
 //upload img route
-// app.use('/uploads',);
-
+app.use('/api/upload-images',uploadImagesRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/vouchers', voucherRoutes);
 app.use('/api/brands', brandRoutes);  
