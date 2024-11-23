@@ -35,6 +35,7 @@ const styleRoutes = require('./routes/styleRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const uploadImagesRoutes = require('./routes/uploadImagesRoutes');
+const stripeRoutes = require('./routes/stripeRoutes');
 
 //upload img route
 app.use('/api/upload-images',uploadImagesRoutes);
@@ -46,6 +47,7 @@ app.use('/api/styles', styleRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/carts', cartRoutes);
+app.use("/api/stripe", stripeRoutes);
 
 //documentation
 const swaggerUi = require("swagger-ui-express");
