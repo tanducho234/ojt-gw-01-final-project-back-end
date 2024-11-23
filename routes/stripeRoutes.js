@@ -126,7 +126,7 @@ router.post(
         event = stripe.webhooks.constructEvent(
           req.body,
           signature,
-          webhookSecret
+          process.env.STRIPE_WEB_HOOK
         );
       } catch (err) {
         console.log(`⚠️  Webhook signature verification failed:  ${err}`);
