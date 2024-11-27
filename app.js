@@ -38,6 +38,9 @@ const styleRoutes = require('./routes/styleRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const uploadImagesRoutes = require('./routes/uploadImagesRoutes');
+const emailRoutes = require('./routes/emailRoutes');
+const addressRoutes = require('./routes/addressRoutes');
+const orderDetailRoutes = require('./routes/orderDetailRoutes');
 
 
 //upload img route
@@ -50,6 +53,11 @@ app.use('/api/styles', styleRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/carts', cartRoutes);
+app.use('/api/emails', emailRoutes);
+app.use('/api/addresses', addressRoutes);
+app.use('/api/order-details', orderDetailRoutes);
+
+
 app.get('/', (req, res) => {
   res.send('Hello!');
 }); 

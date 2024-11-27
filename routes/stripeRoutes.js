@@ -1,5 +1,6 @@
 const express = require("express");
 const Stripe = require("stripe");
+const Voucher = require("../models/Voucher");
 
 require("dotenv").config();
 
@@ -11,7 +12,10 @@ router.post("/create-checkout-session", express.json(), async (req, res) => {
   try {
     const { userId, cartItems, voucher, shippingMethod, shippingAddress } =
       req.body;
-
+    const orderValue = cartItems.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    );
     // Validate shipping method
     const shippingOptions = {
       economy: 200, // $2
@@ -42,15 +46,14 @@ router.post("/create-checkout-session", express.json(), async (req, res) => {
     const customer = await stripe.customers.create({
       metadata: {
         userId,
-        cart: JSON.stringify(
-          cartItems.map((item) => {
-            const { imgLink, ...rest } = item;
-            return rest;
-          })
-        ),
         shippingAddress: JSON.stringify(shippingAddress),
         voucher: JSON.stringify(voucher),
         shippingMethod,
+        ...cartItems.reduce((metadata, item, index) => {
+          const { imgLink, ...rest } = item;
+          metadata[`product${index + 1}`] = JSON.stringify(rest);
+          return metadata;
+        }, {}),
       },
     });
 
@@ -156,6 +159,58 @@ router.post(
 
     res.status(200).end();
   }
+
 );
+
+
+
+async function applyVoucher(voucherCode, orderValue) {
+  // Find the voucher by code
+  const voucher = await Voucher.findOne({ code: voucherCode });
+
+  if (!voucher) {
+    throw new Error('Voucher not found');
+  }
+
+  // Check if the voucher is valid
+  if (!voucher.canBeUsed()) {
+    throw new Error('Voucher is either expired, inactive, or has reached its usage limit');
+  }
+
+  // Validate minimum order value
+  if (orderValue < voucher.minOrderValue) {
+    throw new Error(
+      `Order value must be at least ${voucher.minOrderValue} to use this voucher`
+    );
+  }
+
+  // Prepare Stripe coupon creation
+  let coupon;
+  if (voucher.discountPercentage) {
+    // Create a percentage-off coupon
+    coupon = await stripe.coupons.create({
+      percent_off: voucher.discountPercentage,
+      duration: 'once',
+    });
+  } else if (voucher.discountAmount) {
+    // Create a fixed amount-off coupon
+    coupon = await stripe.coupons.create({
+      amount_off: voucher.discountAmount * 100, // Stripe uses cents for fixed amounts
+      currency: 'usd',
+      duration: 'once',
+    });
+  } else {
+    throw new Error('Invalid voucher configuration');
+  }
+
+  // Increment usage count if the voucher is restricted
+  if (voucher.type === 'restricted') {
+    voucher.usageCount += 1;
+    await voucher.save();
+  }
+
+  return coupon;
+}
+
 
 module.exports = router;

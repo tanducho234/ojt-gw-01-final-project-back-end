@@ -7,7 +7,7 @@ const { authenticate, authorize } = require("../middleware/auth");
 router.get("/", vouchersController.getAllVouchers);
 
 // Kiểm tra voucher có thể sử dụng được không
-router.get("/check/:code", vouchersController.checkVoucher);
+router.post("/check", vouchersController.checkVoucher);
 
 // Thêm mới voucher
 router.post(

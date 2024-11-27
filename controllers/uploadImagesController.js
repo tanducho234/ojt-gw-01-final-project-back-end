@@ -24,7 +24,7 @@ exports.uploadImages = async (req, res) => {
                 resolve(result); // Resolve promise with the result
               }
             }
-          )
+          ) 
           .end(file.buffer); // End the stream with file buffer
       });
     });
