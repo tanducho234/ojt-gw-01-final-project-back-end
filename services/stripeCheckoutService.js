@@ -100,8 +100,8 @@ async function createStripeCheckoutSession(
     mode: "payment",
     customer: customer.id,
     discounts: coupon ? [{ coupon: coupon.id }] : [],
-    success_url: `${process.env.CLIENT_URL}/checkout-success`,
-    cancel_url: `${process.env.CLIENT_URL}/cart`,
+    success_url: `${process.env.CLIENT_URL}/checkout/success/${orderDetailId}`,
+    cancel_url: `${process.env.CLIENT_URL}/checkout/failed/${orderDetailId}`,
     locale: "en",
   });
 
