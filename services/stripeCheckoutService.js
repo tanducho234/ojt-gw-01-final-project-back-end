@@ -10,11 +10,11 @@ async function createStripeCheckoutSession(
   shippingMethod,
 //   shippingAddress,
 ) {
-  console.log("userId", userId);
-  console.log("orderDetailId", orderDetailId);
-  console.log("cartItems", cartItems);
-  console.log("voucherDiscountAmount", voucherDiscountAmount);
-  console.log("shippingMethod", shippingMethod);
+  // console.log("userId", userId);
+  // console.log("orderDetailId", orderDetailId);
+  // console.log("cartItems", cartItems);
+  // console.log("voucherDiscountAmount", voucherDiscountAmount);
+  // console.log("shippingMethod", shippingMethod);
   // const orderValue = cartItems.reduce(
   //   (total, item) => total + item.price * item.quantity,
   //   0
@@ -29,15 +29,18 @@ async function createStripeCheckoutSession(
   };
   const shippingCost =
     shippingOptions[shippingMethod] || shippingOptions.standard;
-  console.log("shippingCost", shippingCost,"voucherDiscountAmount",voucherDiscountAmount);
+  // console.log("shippingCost", shippingCost,"voucherDiscountAmount",voucherDiscountAmount);
   // Validate voucher
-  let coupon;
-  coupon = await stripe.coupons.create({
-    amount_off: voucherDiscountAmount * 100,
-    currency: "usd",
-    duration: "once",
-  });
-  console.log("coupon", coupon);
+  let coupon = null;
+  if (voucherDiscountAmount > 0) {
+    // console.log("voucherDiscountAmount", voucherDiscountAmount);
+     coupon = await stripe.coupons.create({
+      amount_off: voucherDiscountAmount * 100,
+      currency: "usd",
+      duration: "once",
+    });
+  }
+ 
 
   //   if (voucher) {
   //     if (voucher.type === "percentage") {
@@ -68,7 +71,7 @@ async function createStripeCheckoutSession(
     //   }, {}),
     },
   });
-  console.log("customer", customer);
+  // console.log("customer", customer);
   const line_items = cartItems.map((item) => ({
     price_data: {
       currency: "usd",
