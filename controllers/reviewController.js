@@ -61,8 +61,7 @@ exports.getReviewsByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const reviews = await Review.find({ userId }).populate('productId', 'name');
-
+    const reviews = await Review.find({ userId }).populate('productId', 'name generalImgLink' );
     if (reviews.length === 0) {
       return res.status(404).json({ message: 'Không tìm thấy đánh giá nào cho user này.' });
     }

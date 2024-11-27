@@ -148,7 +148,8 @@ router.post(
         .then(async (customer) => {
           try {
             // CREATE ORDER
-            console.log("customer", customer, "data", data);
+            console.log("customer", customer.metadata)
+            
           } catch (err) {
             console.log(typeof createOrder);
             console.log(err);

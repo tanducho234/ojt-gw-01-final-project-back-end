@@ -34,6 +34,11 @@ exports.createOrder = async (req, res) => {
       totalPrice,
       shippingAddress,
       paymentMethod,
+      statusHistory: [
+        {
+          status: 'Order created',
+        }
+      ],
     });
     await newOrder.save();
 

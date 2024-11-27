@@ -1,7 +1,6 @@
 const Cart = require("../models/Cart");
 const Product = require("../models/Product");
 
-
 // Thêm sản phẩm vào giỏ hàng
 exports.addProductToCart = async (req, res) => {
   const userId = req.user._id; // Lấy userId từ req.user
@@ -37,7 +36,7 @@ exports.addProductToCart = async (req, res) => {
     }
 
     await cart.save();
-    res.status(200).json(cart );
+    res.status(200).json(cart);
   } catch (error) {
     res.status(500).json({ message: "Failed to add product to cart.", error });
   }
@@ -115,7 +114,9 @@ exports.removeProductFromCart = async (req, res) => {
       res.status(404).json({ message: "Product not found in cart." });
     }
   } catch (error) {
-    res.status(500).json({ message: "Failed to remove product from cart.", error });
+    res
+      .status(500)
+      .json({ message: "Failed to remove product from cart.", error });
   }
 };
 
@@ -125,10 +126,15 @@ exports.getUserCart = async (req, res) => {
 
   try {
     // Lấy giỏ hàng của người dùng
-    const cart = await Cart.findOne({ userId });
+    let cart = await Cart.findOne({ userId });
 
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found." });
+      // Tạo giỏ hàng mới nếu chưa tồn tại
+      cart = new Cart({ userId, products: [] });
+      await cart.save();
+      res.status(200).json(cart);
+
+
     }
 
     // Xử lý dữ liệu giỏ hàng để thêm tên, ảnh và giá
@@ -145,13 +151,19 @@ exports.getUserCart = async (req, res) => {
         const colorDetails = product.colors.find((c) => c.color === item.color);
 
         if (!colorDetails) {
-          throw new Error(`Color ${item.color} not found for product ${product.name}.`);
+          throw new Error(
+            `Color ${item.color} not found for product ${product.name}.`
+          );
         }
 
-        const sizeDetails = colorDetails.sizes.find((s) => s.size === item.size);
+        const sizeDetails = colorDetails.sizes.find(
+          (s) => s.size === item.size
+        );
 
         if (!sizeDetails) {
-          throw new Error(`Size ${item.size} not found for product ${product.name} in color ${item.color}.`);
+          throw new Error(
+            `Size ${item.size} not found for product ${product.name} in color ${item.color}.`
+          );
         }
 
         return {
@@ -168,6 +180,8 @@ exports.getUserCart = async (req, res) => {
 
     res.status(200).json(cartWithDetails);
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch cart.", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch cart.", error: error.message });
   }
 };
