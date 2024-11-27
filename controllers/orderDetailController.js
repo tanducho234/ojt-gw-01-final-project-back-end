@@ -1,3 +1,4 @@
+const Cart = require("../models/Cart");
 const OrderDetail = require("../models/OrderDetail");
 const {
   createStripeCheckoutSession,
@@ -15,7 +16,7 @@ exports.createOrder = async (req, res) => {
       shippingAddress,
       paymentMethod,
     } = req.body;
-    console.log("aaaa",voucherDiscountAmount)
+    console.log("aaaa", voucherDiscountAmount);
     let paymentLink = "";
     let shippingMethod = "standard";
     if (shippingCost == 2) {
@@ -23,7 +24,6 @@ exports.createOrder = async (req, res) => {
     } else if (shippingCost == 5) {
       shippingMethod = "express";
     }
-
 
     const newOrder = new OrderDetail({
       userId: req.user.id, // Extracted from the authenticated user
@@ -36,26 +36,35 @@ exports.createOrder = async (req, res) => {
     });
     await newOrder.save();
 
-    console.log("aaaa",voucherDiscountAmount)
+    console.log("aaaa", voucherDiscountAmount);
 
     // Create Stripe payment link
     if (paymentMethod === "Stripe") {
       paymentLink = await createStripeCheckoutSession(
         req.user.id,
-        (newOrder._id).toString(),
+        newOrder._id.toString(),
         products,
         voucherDiscountAmount,
-        shippingMethod,
+        shippingMethod
       );
     }
     if (paymentLink) {
       newOrder.paymentLink = paymentLink;
     }
-    
+
     // Save the order with the payment link added
     await newOrder.save();
-    
-    res.status(201).json(newOrder);
+
+    const updatedCart = await Cart.findOneAndUpdate(
+      { userId: req.user.id },
+      { products: [] },
+      { new: true }
+    );
+
+    if (!updatedCart) {
+      return res.status(404).json({ message: "Cart not found." });
+    }
+    console.log("Cart cleared successfully.");
   } catch (error) {
     console.error("Error creating order:", error);
     res.status(500).json({ message: "Unable to create order." });
