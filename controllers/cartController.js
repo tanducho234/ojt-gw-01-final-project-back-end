@@ -132,9 +132,7 @@ exports.getUserCart = async (req, res) => {
       // Tạo giỏ hàng mới nếu chưa tồn tại
       cart = new Cart({ userId, products: [] });
       await cart.save();
-      res.status(200).json(cart);
-
-
+      res.status(200).json([]);//return empty
     }
 
     // Xử lý dữ liệu giỏ hàng để thêm tên, ảnh và giá
