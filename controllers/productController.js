@@ -47,9 +47,9 @@ exports.getAllProducts = async (req, res) => {
     } else if (sortBy === "createdAtNewToOld") {
       sortOptions.createdAt = -1;
     } else if (sortBy === "ratingLowToHigh") {
-      sortOptions.totalRating = 1;
+      sortOptions.rating = 1;
     } else if (sortBy === "ratingHighToLow") {
-      sortOptions.totalRating = -1;
+      sortOptions.rating = -1;
     } else if (sortBy === "salePercentage") {
       sortOptions.salePercentage = -1;
     } else if (sortBy === "soldQuantity") {
