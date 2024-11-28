@@ -11,7 +11,7 @@ router.get('/random-top-reviews', reviewController.getRandomTopReviews);
 // Route to get reviews by userId
 router.get('/user/:userId', reviewController.getReviewsByUserId);
 
-// Route to get reviews by productId
+// Route to get reviews by productIdr
 router.get('/product/:productId', reviewController.getReviewsByProductId);
 
 module.exports = router;

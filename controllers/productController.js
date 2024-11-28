@@ -7,90 +7,70 @@ const Category = require("../models/Category");
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const {
-      color,
-      size,
-      gender,
-      keyword,
-      minPrice,
-      maxPrice,
-      category,
-      brand,
-      style,
-    } = req.query;
-    const filter = {};
+    const { key, sortBy, price, color, size, category, style, brand } =
+      req.query;
 
-    // Lọc theo màu sắc
+    // Build query object
+    const query = {};
+
+    if (key) {
+      query.name = { $regex: key, $options: "i" }; // Tìm kiếm từ khóa trong tên sản phẩm (không phân biệt chữ hoa/thường)
+    }
     if (color) {
-      filter["colors.color"] = color;
+      query["colors.color"] = color;
     }
-
-    // Lọc theo kích cỡ
     if (size) {
-      filter["colors.sizes.size"] = size;
+      query["colors.sizes.size"] = size;
     }
-
-    // Lọc theo giới tính
-    if (gender) {
-      filter.gender = gender;
-    }
-
-    // Lọc theo category (tra cứu ID từ text)
     if (category) {
-      const foundCategory = await Category.findOne({ name: category });
-      if (foundCategory) {
-        filter.categoryId = foundCategory._id;
-      } else {
-        return res
-          .status(404)
-          .json({ message: `Không tìm thấy danh mục: ${category}` });
-      }
+      query.categoryId = category;
     }
-
-    // Lọc theo brand (tra cứu ID từ text)
-    if (brand) {
-      const foundBrand = await Brand.findOne({ name: brand });
-      if (foundBrand) {
-        filter.brandId = foundBrand._id;
-      } else {
-        return res
-          .status(404)
-          .json({ message: `Không tìm thấy thương hiệu: ${brand}` });
-      }
-    }
-
-    // Lọc theo style (tra cứu ID từ text)
     if (style) {
-      const foundStyle = await Style.findOne({ name: style });
-      if (foundStyle) {
-        filter.styleId = foundStyle._id;
-      } else {
-        return res
-          .status(404)
-          .json({ message: `Không tìm thấy kiểu dáng: ${style}` });
-      }
+      query.styleId = style;
+    }
+    if (brand) {
+      query.brandId = brand;
+    }
+    // if (price) {
+    //   const [min, max] = price.split("-").map(Number);
+    //   query.price = { $gte: min, $lte: max };
+    // }
+
+    // Sorting logic
+    const sortOptions = {};
+    if (sortBy === "priceLowToHigh") {
+      sortOptions.price = 1;
+    } else if (sortBy === "priceHighToLow") {
+      sortOptions.price = -1;
+    } else if (sortBy === "createdAtOldToNew") {
+      sortOptions.createdAt = 1;
+    } else if (sortBy === "createdAtNewToOld") {
+      sortOptions.createdAt = -1;
+    } else if (sortBy === "ratingLowToHigh") {
+      sortOptions.totalRating = 1;
+    } else if (sortBy === "ratingHighToLow") {
+      sortOptions.totalRating = -1;
+    } else if (sortBy === "salePercentage") {
+      sortOptions.salePercentage = -1;
+    } else if (sortBy === "soldQuantity") {
+      sortOptions.soldQuantity = -1;
+    }
+    console.log("Query:", query,"sortOptions",sortOptions);
+    const products = await Product.find(query).sort(sortOptions);
+
+     if (price) {
+      const [min, max] = price.split("-").map(Number);
+      // Filter products based on the sale price (after discount)
+      const filteredProducts = products.filter(product => {
+        const salePrice = product.price * (1 - product.salePercentage / 100);
+        return salePrice >= min && salePrice <= max;
+      });
+      return res.json(filteredProducts);
     }
 
-    // Lọc theo khoảng giá
-    if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice) filter.price.$gte = parseFloat(minPrice);
-      if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
-    }
-
-    // Lọc theo từ khóa (tên hoặc mô tả sản phẩm)
-    if (keyword) {
-      filter.$or = [
-        { name: { $regex: keyword, $options: "i" } },
-        { description: { $regex: keyword, $options: "i" } },
-      ];
-    }
-
-    const products = await Product.find(filter);
-    res.status(200).json(products);
+    res.json(products);
   } catch (error) {
-    console.error("Lỗi khi lấy sản phẩm:", error);
-    res.status(500).json({ message: "Không thể lấy sản phẩm." });
+    res.status(500).json({ message: "Error fetching products", error });
   }
 };
 // Lấy chi tiết một sản phẩm theo ID

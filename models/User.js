@@ -76,16 +76,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    reviews: [reviewSchema],
-    addresses: [addressSchema],
   },
   { timestamps: true }
 );
-//function to add new review to user
-userSchema.methods.addReview = function (review) {
-  this.reviews.push(review);
-  return this.save();
-};
+
 
 module.exports = mongoose.model("User", userSchema);
 

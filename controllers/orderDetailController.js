@@ -82,7 +82,7 @@ exports.createOrder = async (req, res) => {
 // Get all orders for the authenticated user
 exports.getUserOrders = async (req, res) => {
   try {
-    const orders = await OrderDetail.find({ userId: req.user.id });
+    const orders = await OrderDetail.find({ userId: req.user.id }).sort({ createdAt: -1 });
     res.status(200).json(orders);
   } catch (error) {
     console.error("Error fetching user orders:", error);

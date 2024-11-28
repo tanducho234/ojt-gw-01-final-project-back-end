@@ -1,6 +1,7 @@
 const express = require("express");
 const Stripe = require("stripe");
 const Voucher = require("../models/Voucher");
+const OrderDetail = require("../models/OrderDetail");
 
 require("dotenv").config();
 
@@ -149,6 +150,9 @@ router.post(
           try {
             // CREATE ORDER
             console.log("customer", customer.metadata)
+            const orderDetailId= customer.metadata.orderDetailId
+            //update paymentStatus of that order orderDetailId
+            await OrderDetail.findByIdAndUpdate(orderDetailId, { paymentStatus: "Paid" }, { new: true });
             
           } catch (err) {
             console.log(typeof createOrder);
