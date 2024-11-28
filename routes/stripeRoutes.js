@@ -144,42 +144,54 @@ router.post(
 
     // Handle the checkout.session.completed event
     if (eventType === "checkout.session.completed") {
-      stripe.customers
-        .retrieve(data.customer)
-        .then(async (customer) => {
-          try {
-            // CREATE ORDER
-            console.log("customer", customer.metadata)
-            const orderDetailId= customer.metadata.orderDetailId
-            //update paymentStatus of that order orderDetailId
-            await OrderDetail.findByIdAndUpdate(orderDetailId, { paymentStatus: "Paid" }, { new: true });
-            
-          } catch (err) {
-            console.log(typeof createOrder);
-            console.log(err);
-          }
-        })
-        .catch((err) => console.log(err.message));
+      try {
+        const customer = await stripe.customers.retrieve(data.customer);
+        
+        // CREATE ORDER
+        console.log("customer", customer.metadata);
+        const orderDetailId = customer.metadata.orderDetailId;
+        console.log("orderDetailId", orderDetailId);
+
+        // Update paymentStatus of that order orderDetailId
+        const updatedOrder = await OrderDetail.findByIdAndUpdate(
+          orderDetailId,
+          { paymentStatus: "Paid" },
+          { new: true }
+        );
+
+        // Check if the order was updated successfully
+        if (updatedOrder) {
+          console.log("Order updated successfully", updatedOrder);
+        } else {
+          console.log("Order not found or update failed");
+        }
+
+        // Send success response after the update
+        return res.status(200).json({ message: "Order updated successfully", orderDetailId });
+        
+      } catch (err) {
+        console.log("Error occurred while processing the webhook:", err);
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
     }
 
-    res.status(200).end();
+    // If event type is not handled, just return OK
+    return res.status(200).json({ message: "Event not handled" });
   }
-
 );
-
-
-
 async function applyVoucher(voucherCode, orderValue) {
   // Find the voucher by code
   const voucher = await Voucher.findOne({ code: voucherCode });
 
   if (!voucher) {
-    throw new Error('Voucher not found');
+    throw new Error("Voucher not found");
   }
 
   // Check if the voucher is valid
   if (!voucher.canBeUsed()) {
-    throw new Error('Voucher is either expired, inactive, or has reached its usage limit');
+    throw new Error(
+      "Voucher is either expired, inactive, or has reached its usage limit"
+    );
   }
 
   // Validate minimum order value
@@ -195,27 +207,26 @@ async function applyVoucher(voucherCode, orderValue) {
     // Create a percentage-off coupon
     coupon = await stripe.coupons.create({
       percent_off: voucher.discountPercentage,
-      duration: 'once',
+      duration: "once",
     });
   } else if (voucher.discountAmount) {
     // Create a fixed amount-off coupon
     coupon = await stripe.coupons.create({
       amount_off: voucher.discountAmount * 100, // Stripe uses cents for fixed amounts
-      currency: 'usd',
-      duration: 'once',
+      currency: "usd",
+      duration: "once",
     });
   } else {
-    throw new Error('Invalid voucher configuration');
+    throw new Error("Invalid voucher configuration");
   }
 
   // Increment usage count if the voucher is restricted
-  if (voucher.type === 'restricted') {
+  if (voucher.type === "restricted") {
     voucher.usageCount += 1;
     await voucher.save();
   }
 
   return coupon;
 }
-
 
 module.exports = router;
