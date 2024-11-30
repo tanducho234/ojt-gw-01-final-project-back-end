@@ -7,7 +7,7 @@ const Category = require("../models/Category");
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const { key, sortBy, price, color, size, category, style, brand } =
+    const { key, sortBy, price, color, size, category, style, brand ,order="asc"} =
       req.query;
 
     // Build query object
@@ -38,30 +38,20 @@ exports.getAllProducts = async (req, res) => {
 
     // Sorting logic
     const sortOptions = {};
-    if (sortBy === "priceLowToHigh") {
-      sortOptions.price = 1;
-    } else if (sortBy === "priceHighToLow") {
-      sortOptions.price = -1;
-    } else if (sortBy === "createdAtOldToNew") {
-      sortOptions.createdAt = 1;
-    } else if (sortBy === "createdAtNewToOld") {
-      sortOptions.createdAt = -1;
-    } else if (sortBy === "ratingLowToHigh") {
-      sortOptions.rating = 1;
-    } else if (sortBy === "ratingHighToLow") {
-      sortOptions.rating = -1;
-    } else if (sortBy === "salePercentage") {
-      sortOptions.salePercentage = -1;
-    } else if (sortBy === "soldQuantity") {
-      sortOptions.soldQuantity = -1;
+
+    if (sortBy && order) {
+      // Determine if order is asc or desc
+      const sortOrder = order.toLowerCase() === "asc" ? 1 : -1;
+      sortOptions[sortBy] = sortOrder;
     }
-    console.log("Query:", query,"sortOptions",sortOptions);
+
+    console.log("Query:", query, "sortOptions:", sortOptions);
     const products = await Product.find(query).sort(sortOptions);
 
-     if (price) {
+    if (price) {
       const [min, max] = price.split("-").map(Number);
       // Filter products based on the sale price (after discount)
-      const filteredProducts = products.filter(product => {
+      const filteredProducts = products.filter((product) => {
         const salePrice = product.price * (1 - product.salePercentage / 100);
         return salePrice >= min && salePrice <= max;
       });

@@ -176,7 +176,6 @@ router.get("/user", authenticate, authorize(["user", "admin"]), (req, res) => {
   res.json({ message: "Welcome, user!" });
 });
 
-
 // Check valid JWT token route
 /**
  * @swagger
@@ -196,19 +195,81 @@ router.get("/verify", authenticate, (req, res) => {
   try {
     // Token is already verified by authenticate middleware
     // Just return success response
-    res.status(200).json({ 
+    res.status(200).json({
       valid: true,
       message: "Token is valid",
       user: {
         id: req.user.id,
-        role: req.user.role
-      }
+        role: req.user.role,
+      },
     });
   } catch (error) {
-    res.status(401).json({ 
+    res.status(401).json({
       valid: false,
-      message: "Invalid or expired token" 
+      message: "Invalid or expired token",
     });
+  }
+});
+
+//get userprofile
+router.get("/profile", authenticate, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching user profile", error });
+  }
+});
+//post userprofile
+router.post("/profile", authenticate, async (req, res) => {
+  try {
+    const userId = req.user.id; // Lấy ID người dùng từ JWT
+    const { fullName, phoneNumber, gender, birthDate, address } = req.body;
+
+    // Kiểm tra người dùng có tồn tại không
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Cập nhật các trường thông tin
+    user.fullName = fullName || user.fullName;
+    user.phoneNumber = phoneNumber || user.phoneNumber;
+    user.gender = gender || user.gender;
+    user.birthDate = birthDate || user.birthDate;
+    user.address = address || user.address;
+
+    // Lưu lại thay đổi
+    await user.save();
+
+    return res.status(200).json(user);
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong", error });
+  }
+});
+//change password route
+router.post("/change-password", authenticate, async (req, res) => {
+  try {
+    const userId = req.user.id; // Lấy ID người dùng từ JWT
+    const { currentPassword, newPassword } = req.body;
+
+    // Kiểm tra người dùng có tồn tại không
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Kiểm tra mật khẩu hiện tại
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(400).json({ message: "Current password is incorrect" });
+
+    // Hash mật khẩu mới
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Cập nhật mật khẩu
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong", error });
   }
 });
 
