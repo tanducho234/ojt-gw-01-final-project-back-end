@@ -170,7 +170,7 @@ exports.getUserCart = async (req, res) => {
           color: item.color,
           size: item.size,
           quantity: item.quantity,
-          price: sizeDetails.price,
+          price: (sizeDetails.price*(100-product.salePercentage))/100,
           imgLink: colorDetails.imgLinks[0], // Lấy ảnh đầu tiên của màu sắc
         };
       })

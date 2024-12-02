@@ -7,8 +7,19 @@ const Category = require("../models/Category");
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const { key, sortBy, price, color, size, category, style, brand ,order="asc"} =
-      req.query;
+    const {
+      key,
+      sortBy,
+      price,
+      color,
+      size,
+      category,
+      style,
+      brand,
+      order = "asc",
+      page,
+      limit = 10,
+    } = req.query;
 
     // Build query object
     const query = {};

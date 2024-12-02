@@ -16,6 +16,10 @@ exports.uploadImages = async (req, res) => {
             {
               resource_type: "image",
               folder: "final_ojt_images",
+              transformation: [
+                { width: 300, height: 300, crop: "pad" }
+              ],
+
             },
             (error, result) => {
               if (error) {
