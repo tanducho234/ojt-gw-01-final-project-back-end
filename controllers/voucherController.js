@@ -1,26 +1,32 @@
 const Voucher = require("../models/Voucher"); // Đảm bảo đường dẫn chính xác
 
 // Lấy tất cả voucher
-exports.getAllVouchers = async (req, res) => {
+exports.getAllVouchersForAdmin = async (req, res) => {
   try {
-    // Tìm tất cả voucher loại 'public'
-    const { role } = req.user; // Assuming user role is available in req.user
-    console.log(req.user);
-    const query = role === "admin" ? {} : { type: "public" };
-    const vouchers = await Voucher.find(query);
-    let validVouchers=vouchers;
-    // Lọc các voucher có thể sử dụng được
-    if (role !== "admin") {
-      validVouchers = vouchers.filter((voucher) => voucher.canBeUsed());
-    }
-
-    res.status(200).json(validVouchers);
+    // Admin không cần lọc theo loại
+    const vouchers = await Voucher.find({});
+    res.status(200).json(vouchers);
   } catch (error) {
-    console.error("Lỗi khi lấy tất cả voucher:", error);
+    console.error("Lỗi khi lấy tất cả voucher cho admin:", error);
     res.status(500).json({ message: "Không thể lấy voucher." });
   }
 };
 
+
+exports.getAllVouchersForUser = async (req, res) => {
+  try {
+    // Lọc voucher theo loại 'public'
+    const vouchers = await Voucher.find({ type: "public" });
+    
+    // Lọc các voucher có thể sử dụng được
+    const validVouchers = vouchers.filter((voucher) => voucher.canBeUsed());
+    
+    res.status(200).json(validVouchers);
+  } catch (error) {
+    console.error("Lỗi khi lấy tất cả voucher cho user:", error);
+    res.status(500).json({ message: "Không thể lấy voucher." });
+  }
+};
 // Kiểm tra voucher có thể sử dụng được không
 exports.checkVoucher = async (req, res) => {
   try {

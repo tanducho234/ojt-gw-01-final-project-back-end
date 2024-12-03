@@ -4,8 +4,8 @@ const vouchersController = require("../controllers/voucherController"); // Đả
 const { authenticate, authorize } = require("../middleware/auth");
 
 // Lấy tất cả voucher
-router.get("/", vouchersController.getAllVouchers);
-router.get("/admin", authenticate, authorize(["admin"]), vouchersController.getAllVouchers);
+router.get("/", vouchersController.getAllVouchersForUser);
+router.get("/admin", authenticate, authorize(["admin"]), vouchersController.getAllVouchersForAdmin);
 
 // Kiểm tra voucher có thể sử dụng được không
 router.post("/check", vouchersController.checkVoucher);
