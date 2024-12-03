@@ -41,6 +41,7 @@ const uploadImagesRoutes = require('./routes/uploadImagesRoutes');
 const emailRoutes = require('./routes/emailRoutes');
 const addressRoutes = require('./routes/addressRoutes');
 const orderDetailRoutes = require('./routes/orderDetailRoutes');
+const vnpayRoutes = require('./routes/vnpayRoutes');
 
 
 //upload img route
@@ -56,6 +57,8 @@ app.use('/api/carts', cartRoutes);
 app.use('/api/emails', emailRoutes);
 app.use('/api/addresses', addressRoutes);
 app.use('/api/order-details', orderDetailRoutes);
+
+app.use('/api/vnpay',vnpayRoutes);
 
 
 app.get('/', (req, res) => {

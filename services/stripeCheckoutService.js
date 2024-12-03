@@ -7,8 +7,8 @@ async function createStripeCheckoutSession(
   orderDetailId,
   cartItems,
   voucherDiscountAmount,
-  shippingMethod,
-//   shippingAddress,
+  shippingMethod
+  //   shippingAddress,
 ) {
   // console.log("userId", userId);
   // console.log("orderDetailId", orderDetailId);
@@ -21,7 +21,7 @@ async function createStripeCheckoutSession(
   // );
 
   // Validate shipping method
-  
+
   const shippingOptions = {
     economy: 200,
     standard: 350,
@@ -34,13 +34,12 @@ async function createStripeCheckoutSession(
   let coupon = null;
   if (voucherDiscountAmount > 0) {
     // console.log("voucherDiscountAmount", voucherDiscountAmount);
-     coupon = await stripe.coupons.create({
+    coupon = await stripe.coupons.create({
       amount_off: voucherDiscountAmount * 100,
       currency: "usd",
       duration: "once",
     });
   }
- 
 
   //   if (voucher) {
   //     if (voucher.type === "percentage") {
@@ -61,14 +60,14 @@ async function createStripeCheckoutSession(
     metadata: {
       userId,
       orderDetailId,
-    //   shippingAddress: JSON.stringify(shippingAddress),
-    //   voucher: JSON.stringify(voucher),
-    //   shippingMethod,
-    //   ...cartItems.reduce((metadata, item, index) => {
-    //     const { imgLink, ...rest } = item;
-    //     metadata[`product${index + 1}`] = JSON.stringify(rest);
-    //     return metadata;
-    //   }, {}),
+      //   shippingAddress: JSON.stringify(shippingAddress),
+      //   voucher: JSON.stringify(voucher),
+      //   shippingMethod,
+      //   ...cartItems.reduce((metadata, item, index) => {
+      //     const { imgLink, ...rest } = item;
+      //     metadata[`product${index + 1}`] = JSON.stringify(rest);
+      //     return metadata;
+      //   }, {}),
     },
   });
   // console.log("customer", customer);

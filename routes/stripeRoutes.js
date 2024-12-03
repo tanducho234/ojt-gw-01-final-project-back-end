@@ -146,7 +146,7 @@ router.post(
     if (eventType === "checkout.session.completed") {
       try {
         const customer = await stripe.customers.retrieve(data.customer);
-        
+
         // CREATE ORDER
         console.log("customer", customer.metadata);
         const orderDetailId = customer.metadata.orderDetailId;
@@ -167,8 +167,9 @@ router.post(
         }
 
         // Send success response after the update
-        return res.status(200).json({ message: "Order updated successfully", orderDetailId });
-        
+        return res
+          .status(200)
+          .json({ message: "Order updated successfully", orderDetailId });
       } catch (err) {
         console.log("Error occurred while processing the webhook:", err);
         return res.status(500).json({ message: "Internal Server Error" });

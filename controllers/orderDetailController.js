@@ -3,6 +3,9 @@ const OrderDetail = require("../models/OrderDetail");
 const {
   createStripeCheckoutSession,
 } = require("../services/stripeCheckoutService");
+const {
+  createVnPayCheckoutSession,
+} = require("../services/vnpayCheckoutService");
 
 // Create a new order
 exports.createOrder = async (req, res) => {
@@ -25,7 +28,6 @@ exports.createOrder = async (req, res) => {
       shippingMethod = "express";
     }
 
-
     const newOrder = new OrderDetail({
       userId: req.user.id, // Extracted from the authenticated user
       products,
@@ -36,8 +38,8 @@ exports.createOrder = async (req, res) => {
       paymentMethod,
       statusHistory: [
         {
-          status: 'Order created',
-        }
+          status: "Order created",
+        },
       ],
     });
     await newOrder.save();
@@ -48,16 +50,24 @@ exports.createOrder = async (req, res) => {
     if (paymentMethod === "Stripe") {
       paymentLink = await createStripeCheckoutSession(
         req.user.id,
-        (newOrder._id).toString(),
+        newOrder._id.toString(),
         products,
         voucherDiscountAmount,
-        shippingMethod,
+        shippingMethod
       );
+    } //else VNPAY
+    else if (paymentMethod === "VNPAY") {
+      paymentLink = createVnPayCheckoutSession(
+        (totalPrice * 25000).toFixed(2),
+        "VNBANK",
+        newOrder._id.toString()
+      );
+      console.log("paymentLink", paymentLink);
     }
     if (paymentLink) {
       newOrder.paymentLink = paymentLink;
     }
-    
+
     // Save the order with the payment link added
     await newOrder.save();
 
@@ -71,7 +81,6 @@ exports.createOrder = async (req, res) => {
       return res.status(404).json({ message: "Cart not found." });
     }
 
-    
     res.status(201).json(newOrder);
   } catch (error) {
     console.error("Error creating order:", error);
@@ -82,7 +91,9 @@ exports.createOrder = async (req, res) => {
 // Get all orders for the authenticated user
 exports.getUserOrders = async (req, res) => {
   try {
-    const orders = await OrderDetail.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    const orders = await OrderDetail.find({ userId: req.user.id }).sort({
+      createdAt: -1,
+    });
     res.status(200).json(orders);
   } catch (error) {
     console.error("Error fetching user orders:", error);
@@ -113,6 +124,16 @@ exports.getOrderById = async (req, res) => {
 exports.updateOrder = async (req, res) => {
   try {
     const updateData = req.body;
+    
+    // If status is being updated, add to status history
+    if (updateData.status) {
+      updateData.$push = {
+        statusHistory: {
+          status: updateData.status,
+          timestamp: new Date()
+        }
+      };
+    }
 
     const updatedOrder = await OrderDetail.findOneAndUpdate(
       { _id: req.params.id, userId: req.user.id },
