@@ -4,10 +4,15 @@ const Voucher = require("../models/Voucher"); // Đảm bảo đường dẫn ch
 exports.getAllVouchers = async (req, res) => {
   try {
     // Tìm tất cả voucher loại 'public'
-    const vouchers = await Voucher.find({ type: "public" });
-
+    const { role } = req.user; // Assuming user role is available in req.user
+    console.log(req.user);
+    const query = role === "admin" ? {} : { type: "public" };
+    const vouchers = await Voucher.find(query);
+    let validVouchers=vouchers;
     // Lọc các voucher có thể sử dụng được
-    const validVouchers = vouchers.filter((voucher) => voucher.canBeUsed());
+    if (role !== "admin") {
+      validVouchers = vouchers.filter((voucher) => voucher.canBeUsed());
+    }
 
     res.status(200).json(validVouchers);
   } catch (error) {
@@ -19,13 +24,13 @@ exports.getAllVouchers = async (req, res) => {
 // Kiểm tra voucher có thể sử dụng được không
 exports.checkVoucher = async (req, res) => {
   try {
-    const { code, orderValue = 0 } = req.body;  // Lấy 'code' và 'orderValue' từ body
+    const { code, orderValue = 0 } = req.body; // Lấy 'code' và 'orderValue' từ body
     const voucher = await Voucher.findOne({ code });
 
     // Kiểm tra nếu voucher không tồn tại hoặc không đủ giá trị đơn hàng
     if (!voucher || orderValue < voucher.minOrderValue) {
       return res.status(400).json({
-        canUse: false,  // Voucher không thể sử dụng (không tồn tại hoặc không đủ giá trị đơn hàng)
+        canUse: false, // Voucher không thể sử dụng (không tồn tại hoặc không đủ giá trị đơn hàng)
         message: "Voucher cannot be applied.",
       });
     }
@@ -33,7 +38,7 @@ exports.checkVoucher = async (req, res) => {
     // Kiểm tra xem voucher có thể sử dụng hay không
     const canUse = voucher.canBeUsed();
     return res.status(200).json({
-      canUse,  // true nếu voucher có thể sử dụng, false nếu không
+      canUse, // true nếu voucher có thể sử dụng, false nếu không
       message: canUse
         ? "Voucher applied successfully."
         : "Voucher cannot be applied - it may be expired or has reached its usage limit.",

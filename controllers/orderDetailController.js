@@ -1,5 +1,6 @@
 const Cart = require("../models/Cart");
 const OrderDetail = require("../models/OrderDetail");
+const Voucher = require("../models/Voucher");
 const {
   createStripeCheckoutSession,
 } = require("../services/stripeCheckoutService");
@@ -18,6 +19,7 @@ exports.createOrder = async (req, res) => {
       totalPrice,
       shippingAddress,
       paymentMethod,
+      voucherCode
     } = req.body;
     // console.log("aaaa",voucherDiscountAmount)
     let paymentLink = "";
@@ -27,7 +29,14 @@ exports.createOrder = async (req, res) => {
     } else if (shippingCost == 5) {
       shippingMethod = "express";
     }
-
+    //increase useage count of voucher by id
+    if (voucherCode) {
+      const voucher = await Voucher.findOne({ code: voucherCode });
+      if (voucher) {
+        voucher.usageCount += 1;
+        await voucher.save();
+      }
+    }
     const newOrder = new OrderDetail({
       userId: req.user.id, // Extracted from the authenticated user
       products,
