@@ -8,6 +8,17 @@ const {
   createVnPayCheckoutSession,
 } = require("../services/vnpayCheckoutService");
 
+
+exports.getAllOrders=
+async (req, res) => {
+  try {
+    const orders = await OrderDetail.find({}).sort({ createdAt: -1 });
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ message: "Failed to fetch orders." });
+  }
+};
 // Create a new order
 exports.createOrder = async (req, res) => {
   try {
