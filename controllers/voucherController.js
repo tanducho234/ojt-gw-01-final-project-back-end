@@ -47,6 +47,7 @@ exports.checkVoucher = async (req, res) => {
       message: canUse
         ? "Voucher applied successfully."
         : "Voucher cannot be applied - it may be expired or has reached its usage limit.",
+      voucher: canUse ? voucher : null,
     });
   } catch (error) {
     console.error("Error while checking voucher:", error);
