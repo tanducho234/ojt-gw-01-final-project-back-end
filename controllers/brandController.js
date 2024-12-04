@@ -29,12 +29,12 @@ const getBrandById = async (req, res) => {
 
 // Create a new brand
 const createBrand = async (req, res) => {
-  const { name, description,imgLink } = req.body; // Assuming name and description are required
+  const { name, description, imgLink } = req.body; // Assuming name and description are required
   try {
     const newBrand = new Brand({
       name,
       description,
-      imgLink
+      imgLink,
     });
 
     await newBrand.save(); // Save the brand to the database
@@ -48,11 +48,11 @@ const createBrand = async (req, res) => {
 // Update an existing brand
 const updateBrand = async (req, res) => {
   const { id } = req.params; // Extract ID from URL params
-  const { name, description } = req.body; // Assuming name and description are passed to update
+  const { name, description, imgLink } = req.body; // Assuming name and description are passed to update
   try {
     const updatedBrand = await Brand.findByIdAndUpdate(
       id,
-      { name, description },
+      { name, description, imgLink },
       { new: true } // This ensures that the updated document is returned
     );
 

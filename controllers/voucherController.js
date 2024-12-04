@@ -4,7 +4,7 @@ const Voucher = require("../models/Voucher"); // Đảm bảo đường dẫn ch
 exports.getAllVouchersForAdmin = async (req, res) => {
   try {
     // Admin không cần lọc theo loại
-    const vouchers = await Voucher.find({});
+    const vouchers = await Voucher.find({}).sort({ createdAt: -1 });
     res.status(200).json(vouchers);
   } catch (error) {
     console.error("Lỗi khi lấy tất cả voucher cho admin:", error);
@@ -12,15 +12,14 @@ exports.getAllVouchersForAdmin = async (req, res) => {
   }
 };
 
-
 exports.getAllVouchersForUser = async (req, res) => {
   try {
     // Lọc voucher theo loại 'public'
     const vouchers = await Voucher.find({ type: "public" });
-    
+
     // Lọc các voucher có thể sử dụng được
     const validVouchers = vouchers.filter((voucher) => voucher.canBeUsed());
-    
+
     res.status(200).json(validVouchers);
   } catch (error) {
     console.error("Lỗi khi lấy tất cả voucher cho user:", error);
