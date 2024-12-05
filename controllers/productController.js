@@ -139,3 +139,37 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({ message: "Không thể xóa sản phẩm." });
   }
 };
+
+
+
+exports.updateColorVariant = async (req, res) => {
+  const { id :productId} = req.params;
+  const { color, sizes, imgLinks } = req.body;
+
+  if (!color || !sizes || !Array.isArray(sizes) || !imgLinks) {
+    return res.status(400).json({ message: "Color, sizes, and imgLinks are required." });
+  }
+
+  try {
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found." });
+    }
+
+    // Check if color exists, update or push new
+    const existingColorIndex = product.colors.findIndex((c) => c.color === color);
+    if (existingColorIndex >= 0) {
+      // Update existing color variant
+      product.colors[existingColorIndex].sizes = sizes;
+      product.colors[existingColorIndex].imgLinks = imgLinks;
+    } else {
+      // Add new color variant
+      product.colors.push({ color, sizes, imgLinks });
+    }
+
+    await product.save();
+    res.status(200).json({ message: "Color variant updated successfully.", product });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating color variant.", error: error.message });
+  }
+};

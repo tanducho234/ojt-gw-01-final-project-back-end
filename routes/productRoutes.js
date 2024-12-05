@@ -13,6 +13,8 @@ router.get('/:id', productController.getProductById);
 // Thêm mới sản phẩm (chỉ admin)
 router.post('/', authenticate, authorize(['admin']), productController.createProduct);
 
+router.put("/:id/colors" ,authenticate, authorize(['admin']), productController.updateColorVariant);
+
 // Cập nhật sản phẩm theo ID (chỉ admin)
 router.put('/:id', authenticate, authorize(['admin']), productController.updateProduct);
 

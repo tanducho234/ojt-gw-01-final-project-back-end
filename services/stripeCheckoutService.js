@@ -32,10 +32,11 @@ async function createStripeCheckoutSession(
   // console.log("shippingCost", shippingCost,"voucherDiscountAmount",voucherDiscountAmount);
   // Validate voucher
   let coupon = null;
+  // console.log("voucherDiscountAmount * 100,", voucherDiscountAmount.toFixed(2) * 100);
   if (voucherDiscountAmount > 0) {
     // console.log("voucherDiscountAmount", voucherDiscountAmount);
     coupon = await stripe.coupons.create({
-      amount_off: voucherDiscountAmount * 100,
+      amount_off:  Math.round(voucherDiscountAmount * 100),
       currency: "usd",
       duration: "once",
     });

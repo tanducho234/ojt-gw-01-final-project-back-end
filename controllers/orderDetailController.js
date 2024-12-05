@@ -32,7 +32,6 @@ exports.createOrder = async (req, res) => {
       paymentMethod,
       voucherCode
     } = req.body;
-    // console.log("aaaa",voucherDiscountAmount)
     let paymentLink = "";
     let shippingMethod = "standard";
     if (shippingCost == 2) {
@@ -64,8 +63,6 @@ exports.createOrder = async (req, res) => {
     });
     await newOrder.save();
 
-    // console.log("aaaa",voucherDiscountAmount)
-
     // Create Stripe payment link
     if (paymentMethod === "Stripe") {
       paymentLink = await createStripeCheckoutSession(
@@ -82,7 +79,6 @@ exports.createOrder = async (req, res) => {
         "VNBANK",
         newOrder._id.toString()
       );
-      console.log("paymentLink", paymentLink);
     }
     if (paymentLink) {
       newOrder.paymentLink = paymentLink;
