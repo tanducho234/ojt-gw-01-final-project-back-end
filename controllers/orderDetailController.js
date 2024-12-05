@@ -8,9 +8,7 @@ const {
   createVnPayCheckoutSession,
 } = require("../services/vnpayCheckoutService");
 
-
-exports.getAllOrders=
-async (req, res) => {
+exports.getAllOrders = async (req, res) => {
   try {
     const orders = await OrderDetail.find({}).sort({ createdAt: -1 });
     res.status(200).json(orders);
@@ -30,7 +28,7 @@ exports.createOrder = async (req, res) => {
       totalPrice,
       shippingAddress,
       paymentMethod,
-      voucherCode
+      voucherCode,
     } = req.body;
     let paymentLink = "";
     let shippingMethod = "standard";
@@ -140,19 +138,19 @@ exports.getOrderById = async (req, res) => {
 exports.updateOrder = async (req, res) => {
   try {
     const updateData = req.body;
-    
+
     // If status is being updated, add to status history
     if (updateData.status) {
       updateData.$push = {
         statusHistory: {
           status: updateData.status,
-          timestamp: new Date()
-        }
+          timestamp: new Date(),
+        },
       };
     }
 
     const updatedOrder = await OrderDetail.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user.id },
+      { _id: req.params.id },
       updateData,
       { new: true }
     );
