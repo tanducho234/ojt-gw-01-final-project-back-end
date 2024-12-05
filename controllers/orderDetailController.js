@@ -58,7 +58,7 @@ exports.createOrder = async (req, res) => {
       paymentMethod,
       statusHistory: [
         {
-          status: "Order created",
+          status: "Pending",
         },
       ],
     });
