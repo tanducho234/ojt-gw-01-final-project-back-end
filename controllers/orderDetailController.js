@@ -21,13 +21,13 @@ exports.getAllOrders = async (req, res) => {
 exports.getShipperOrders = async (req, res) => {
   try {
     const orders = await OrderDetail.find({
-      status: { $nin: ['Pending', 'Preparing'] } // Exclude Pending and Preparing statuses
+      status: { $nin: ["Pending", "Preparing"] }, // Exclude Pending and Preparing statuses
     }).sort({ createdAt: -1 }); // Sort by newest first
 
     res.status(200).json(orders);
   } catch (error) {
-    console.error('Error fetching orders for shipper:', error);
-    res.status(500).json({ message: 'Failed to fetch orders.' });
+    console.error("Error fetching orders for shipper:", error);
+    res.status(500).json({ message: "Failed to fetch orders." });
   }
 };
 // Create a new order
@@ -131,10 +131,7 @@ exports.getUserOrders = async (req, res) => {
 // Get a specific order by ID
 exports.getOrderById = async (req, res) => {
   try {
-    const order = await OrderDetail.findOne({
-      _id: req.params.id,
-      userId: req.user.id,
-    });
+    const order = await OrderDetail.findOne({ _id: req.params.id });
 
     if (!order) {
       return res.status(404).json({ message: "Order not found." });
@@ -158,7 +155,7 @@ exports.updateOrder = async (req, res) => {
         statusHistory: {
           status: updateData.status,
           timestamp: new Date(),
-          description:updateData.description
+          description: updateData.description,
         },
       };
     }
@@ -185,10 +182,7 @@ exports.updateOrder = async (req, res) => {
 // Delete an order (optional)
 exports.deleteOrder = async (req, res) => {
   try {
-    const order = await OrderDetail.findOneAndDelete({
-      _id: req.params.id,
-      userId: req.user.id,
-    });
+    const order = await OrderDetail.findOneAndDelete({ _id: req.params.id });
 
     if (!order) {
       return res
