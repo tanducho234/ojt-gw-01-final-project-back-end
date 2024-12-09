@@ -4,47 +4,60 @@ const Review = require("../models/Review");
 // Thêm review
 exports.addReview = async (req, res) => {
   try {
-    const { userId, productId, rating, feedback } = req.body;
+    const reviews = req.body;  // Assuming req.body is an array of review objects
+    const userId = req.user.id;
 
-    if (rating < 0 || rating > 5) {
-      return res
-        .status(400)
-        .json({ message: "Rating must be between 0 and 5." });
-    }
+    // Loop through each review in the array
+    for (const reviewData of reviews) {
+      const { productId, rating, feedback } = reviewData;
 
-    // Create the new review
-    const newReview = new Review({
-      userId,
-      productId,
-      rating,
-      feedback,
-    });
+      // Validation for rating
+      if (rating < 0 || rating > 5) {
+        return res
+          .status(400)
+          .json({ message: "Rating must be between 0 and 5." });
+      }
 
-    // Save the new review
-    const savedReview = await newReview.save();
+      // Create a new review
+      const newReview = new Review({
+        userId,
+        productId,
+        rating,
+        feedback,
+      });
 
-    // Update totalReview and totalRating for the product
-    await Product.findByIdAndUpdate(
-      productId,
-      {
-        $inc: { totalReview: 1, totalRating: rating },
-      },
-      { new: true }
-    ).then(async (product) => {
+      // Save the new review
+      const savedReview = await newReview.save();
+
+      // Update totalReview and totalRating for the product
       await Product.findByIdAndUpdate(
         productId,
         {
-          $set: { rating: product.totalRating / product.totalReview },
+          $inc: { totalReview: 1, totalRating: rating },
         },
         { new: true }
-      );
-    });
-    res.status(201).json(savedReview);
+      ).then(async (product) => {
+        // Recalculate the average rating for the product
+        await Product.findByIdAndUpdate(
+          productId,
+          {
+            $set: { rating: product.totalRating / product.totalReview },
+          },
+          { new: true }
+        );
+      });
+
+      // You could collect all saved reviews here if needed
+      // (in case you want to send them in the response)
+    }
+
+    res.status(201).json({ message: 'Reviews added successfully.' });
   } catch (error) {
-    console.error("Error while adding review:", error);
-    res.status(500).json({ message: "Unable to add review." });
+    console.error("Error while adding reviews:", error);
+    res.status(500).json({ message: "Unable to add reviews." });
   }
 };
+
 
 // Lấy random 5 đánh giá 5 sao
 exports.getRandomTopReviews = async (req, res) => {

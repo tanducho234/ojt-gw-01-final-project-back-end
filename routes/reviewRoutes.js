@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const reviewController = require('../controllers/reviewController');
+const { authenticate } = require('../middleware/auth');
 
 // Route to add review
-router.post('/', reviewController.addReview);
+router.post('/',authenticate, reviewController.addReview);
 
 // Route to get 5 random 5-star reviews
 router.get('/random-top-reviews', reviewController.getRandomTopReviews);
