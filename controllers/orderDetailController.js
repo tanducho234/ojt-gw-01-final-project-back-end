@@ -145,6 +145,7 @@ exports.updateOrder = async (req, res) => {
         statusHistory: {
           status: updateData.status,
           timestamp: new Date(),
+          description:updateData.description
         },
       };
     }

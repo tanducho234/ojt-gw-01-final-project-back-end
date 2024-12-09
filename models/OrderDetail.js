@@ -71,6 +71,10 @@ const orderDetailSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
+        description: {
+          type: String,
+          trim: true,
+        },
       },
     ],
     // Discount applied from voucher
