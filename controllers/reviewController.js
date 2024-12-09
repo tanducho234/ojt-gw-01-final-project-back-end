@@ -10,7 +10,7 @@ exports.addReview = async (req, res) => {
     // Update orderDetail isReview field to true
     await OrderDetail.findByIdAndUpdate(
       orderId,
-      { isReview: true },
+      { isReviewed: true },
       { new: true }
     ); // Loop through each review in the array
     for (const reviewData of reviews) {
