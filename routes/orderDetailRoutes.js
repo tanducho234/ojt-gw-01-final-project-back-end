@@ -3,12 +3,10 @@ const router = express.Router();
 const orderDetailController = require('../controllers/orderDetailController');
 const { authenticate, authorize } = require('../middleware/auth');
 
-// Apply authentication middleware
-router.use(authenticate);
 // Get all orders (admin only)
-router.get('/admin',authorize(["admin"]), orderDetailController.getAllOrders);
+router.get('/admin',authenticate,authorize(["admin"]), orderDetailController.getAllOrders);
 // Create a new order
-router.post('/', orderDetailController.createOrder);
+router.post('/', authenticate,orderDetailController.createOrder);
 
 // Get orders for the authenticated user
 router.get('/', orderDetailController.getUserOrders);

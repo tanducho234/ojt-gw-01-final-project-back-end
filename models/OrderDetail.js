@@ -127,6 +127,7 @@ const orderDetailSchema = new mongoose.Schema(
     paymentLink: {
       type: String, // Stores the payment link for online payment methods
     },
+    
   },
   { timestamps: true }
 );
