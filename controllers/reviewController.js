@@ -1,13 +1,18 @@
+const OrderDetail = require("../models/OrderDetail");
 const Product = require("../models/Product");
 const Review = require("../models/Review");
 
 // Thêm review
 exports.addReview = async (req, res) => {
   try {
-    const reviews = req.body;  // Assuming req.body is an array of review objects
+    const { reviews, orderId } = req.body; // Assuming req.body is an array of review objects
     const userId = req.user.id;
-
-    // Loop through each review in the array
+    // Update orderDetail isReview field to true
+    await OrderDetail.findByIdAndUpdate(
+      orderId,
+      { isReview: true },
+      { new: true }
+    ); // Loop through each review in the array
     for (const reviewData of reviews) {
       const { productId, rating, feedback } = reviewData;
 
@@ -51,13 +56,12 @@ exports.addReview = async (req, res) => {
       // (in case you want to send them in the response)
     }
 
-    res.status(201).json({ message: 'Reviews added successfully.' });
+    res.status(201).json({ message: "Reviews added successfully." });
   } catch (error) {
     console.error("Error while adding reviews:", error);
     res.status(500).json({ message: "Unable to add reviews." });
   }
 };
-
 
 // Lấy random 5 đánh giá 5 sao
 exports.getRandomTopReviews = async (req, res) => {

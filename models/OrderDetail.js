@@ -127,7 +127,10 @@ const orderDetailSchema = new mongoose.Schema(
     paymentLink: {
       type: String, // Stores the payment link for online payment methods
     },
-    
+    isReviewed: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );
