@@ -23,7 +23,7 @@ router.get(
 router.post("/", authenticate, orderDetailController.createOrder);
 
 // Get orders for the authenticated user
-router.get("/", orderDetailController.getUserOrders);
+router.get("/",authenticate, orderDetailController.getUserOrders);
 
 // Get a specific order by ID
 router.get("/:id", orderDetailController.getOrderById);
