@@ -17,6 +17,19 @@ exports.getAllOrders = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch orders." });
   }
 };
+
+exports.getShipperOrders = async (req, res) => {
+  try {
+    const orders = await OrderDetail.find({
+      status: { $nin: ['Pending', 'Preparing'] } // Exclude Pending and Preparing statuses
+    }).sort({ createdAt: -1 }); // Sort by newest first
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error('Error fetching orders for shipper:', error);
+    res.status(500).json({ message: 'Failed to fetch orders.' });
+  }
+};
 // Create a new order
 exports.createOrder = async (req, res) => {
   try {

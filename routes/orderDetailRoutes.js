@@ -1,23 +1,37 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const orderDetailController = require('../controllers/orderDetailController');
-const { authenticate, authorize } = require('../middleware/auth');
+const orderDetailController = require("../controllers/orderDetailController");
+const { authenticate, authorize } = require("../middleware/auth");
 
 // Get all orders (admin only)
-router.get('/admin',authenticate,authorize(["admin"]), orderDetailController.getAllOrders);
+router.get(
+  "/admin",
+  authenticate,
+  authorize(["admin"]),
+  orderDetailController.getAllOrders
+);
+//shipper
+
+router.get(
+  "/shipper",
+//   authenticate,
+//   authorize(["shipper"]),
+  orderDetailController.getShipperOrders
+);
+
 // Create a new order
-router.post('/', authenticate,orderDetailController.createOrder);
+router.post("/", authenticate, orderDetailController.createOrder);
 
 // Get orders for the authenticated user
-router.get('/', orderDetailController.getUserOrders);
+router.get("/", orderDetailController.getUserOrders);
 
 // Get a specific order by ID
-router.get('/:id', orderDetailController.getOrderById);
+router.get("/:id", orderDetailController.getOrderById);
 
 // Update an order (e.g., status or payment)
-router.put('/:id', orderDetailController.updateOrder);
+router.put("/:id", orderDetailController.updateOrder);
 
 // Delete an order (optional)
-router.delete('/:id', orderDetailController.deleteOrder);
+router.delete("/:id", orderDetailController.deleteOrder);
 
 module.exports = router;
