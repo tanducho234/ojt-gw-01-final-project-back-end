@@ -87,10 +87,11 @@ exports.getReviewsByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const reviews = await Review.find({ userId }).populate(
-      "productId",
-      "name generalImgLink"
-    );
+    const reviews = await Review.find({ userId })
+      .populate("productId", "name generalImgLink")
+      .sort({
+        createdAt: -1,
+      });
     if (reviews.length === 0) {
       return res
         .status(404)

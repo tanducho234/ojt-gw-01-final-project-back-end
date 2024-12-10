@@ -56,7 +56,6 @@ exports.getAllProducts = async (req, res) => {
       sortOptions[sortBy] = sortOrder;
     }
 
-    console.log("Query:", query, "sortOptions:", sortOptions);
     const products = await Product.find(query).sort(sortOptions);
 
     if (price) {
@@ -140,14 +139,14 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-
-
 exports.updateColorVariant = async (req, res) => {
-  const { id :productId} = req.params;
+  const { id: productId } = req.params;
   const { color, sizes, imgLinks } = req.body;
 
   if (!color || !sizes || !Array.isArray(sizes) || !imgLinks) {
-    return res.status(400).json({ message: "Color, sizes, and imgLinks are required." });
+    return res
+      .status(400)
+      .json({ message: "Color, sizes, and imgLinks are required." });
   }
 
   try {
@@ -157,7 +156,9 @@ exports.updateColorVariant = async (req, res) => {
     }
 
     // Check if color exists, update or push new
-    const existingColorIndex = product.colors.findIndex((c) => c.color === color);
+    const existingColorIndex = product.colors.findIndex(
+      (c) => c.color === color
+    );
     if (existingColorIndex >= 0) {
       // Update existing color variant
       product.colors[existingColorIndex].sizes = sizes;
@@ -168,8 +169,10 @@ exports.updateColorVariant = async (req, res) => {
     }
 
     await product.save();
-    res.status(200).json({ message: "Color variant updated successfully.", product });
+    res.status(200).json(product);
   } catch (error) {
-    res.status(500).json({ message: "Error updating color variant.", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error updating color variant.", error: error.message });
   }
 };
