@@ -273,4 +273,22 @@ router.post("/change-password", authenticate, async (req, res) => {
   }
 });
 
+//get all user
+router.get("/all", authenticate, authorize(["admin"]), async (req, res) => {
+  try {
+    const { role } = req.query;
+    let query = {};
+    
+    if (role) {
+      query.role = role;
+    }
+
+    const users = await User.find(query).select("-password");
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching users", error });
+  }
+});
+
+
 module.exports = router;

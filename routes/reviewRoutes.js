@@ -1,22 +1,27 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const reviewController = require('../controllers/reviewController');
-const { authenticate } = require('../middleware/auth');
+const reviewController = require("../controllers/reviewController");
+const { authenticate, authorize } = require("../middleware/auth");
 
 // Route to add review
-router.post('/',authenticate, reviewController.addReview);
+router.post("/", authenticate, reviewController.addReview);
+router.get(
+  "/admin",
+  authenticate,
+  authorize(["admin"]),
+  reviewController.getReview
+);
 
 // Route to get 5 random 5-star reviews
-router.get('/random-top-reviews', reviewController.getRandomTopReviews);
+router.get("/random-top-reviews", reviewController.getRandomTopReviews);
 
 // Route to get reviews by userId
-router.get('/user/:userId', reviewController.getReviewsByUserId);
+router.get("/user/:userId", reviewController.getReviewsByUserId);
 
 // Route to get reviews by productIdr
-router.get('/product/:productId', reviewController.getReviewsByProductId);
+router.get("/product/:productId", reviewController.getReviewsByProductId);
 
 module.exports = router;
-
 
 /**
  * @swagger

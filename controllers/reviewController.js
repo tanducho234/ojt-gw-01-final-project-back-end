@@ -2,6 +2,15 @@ const OrderDetail = require("../models/OrderDetail");
 const Product = require("../models/Product");
 const Review = require("../models/Review");
 
+exports.getReview = async (req, res) => {
+  try {
+    const reviews = await Review.find();
+    res.status(200).json(reviews);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json({ message: "Failed to fetch reviews." });
+  }
+};
 // Thêm review
 exports.addReview = async (req, res) => {
   try {
@@ -67,8 +76,8 @@ exports.addReview = async (req, res) => {
 exports.getRandomTopReviews = async (req, res) => {
   try {
     const reviews = await Review.aggregate([
-      { $match: { rating: 5 } },
-      { $sample: { size: 5 } },
+      { $match: { rating: 5, feedback: { $ne: "" } } },
+      { $sample: { size: 15 } },
     ]);
     const populatedReviews = await Review.populate(reviews, {
       path: "userId", // Trường cần populate
