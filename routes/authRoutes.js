@@ -141,7 +141,7 @@ router.delete(
   authorize(["admin"]),
   async (req, res) => {
     const { id } = req.body;
-    console.log("Deleting account with id:", id);
+    // console.log("Deleting account with id:", id);
     try {
       const user = await User.findByIdAndDelete(id);
       if (!user) {
