@@ -14,8 +14,8 @@ router.get(
 
 router.get(
   "/shipper",
-//   authenticate,
-//   authorize(["shipper"]),
+  //   authenticate,
+  //   authorize(["shipper"]),
   orderDetailController.getShipperOrders
 );
 
@@ -23,13 +23,18 @@ router.get(
 router.post("/", authenticate, orderDetailController.createOrder);
 
 // Get orders for the authenticated user
-router.get("/",authenticate, orderDetailController.getUserOrders);
+router.get("/", authenticate, orderDetailController.getUserOrders);
 
 // Get a specific order by ID
 router.get("/:id", orderDetailController.getOrderById);
 
 // Update an order (e.g., status or payment)
-router.put("/:id", orderDetailController.updateOrder);
+router.put(
+  "/:id",
+  authenticate,
+  authorize(["shipper", "admin"]),
+  orderDetailController.updateOrder
+);
 
 // Delete an order (optional)
 router.delete("/:id", orderDetailController.deleteOrder);

@@ -1,6 +1,7 @@
 const Cart = require("../models/Cart");
 const OrderDetail = require("../models/OrderDetail");
 const Voucher = require("../models/Voucher");
+const Product = require("../models/Product");
 const {
   createStripeCheckoutSession,
 } = require("../services/stripeCheckoutService");
@@ -30,6 +31,39 @@ exports.getShipperOrders = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch orders." });
   }
 };
+
+
+
+const updateVariantQuantities = async (products) => {
+  try {
+    const updatePromises = products.map(async (product) => {
+      return Product.findOneAndUpdate(
+        { 
+          _id: product.productId,
+          'colors.color': product.color, // Find the color
+          'colors.sizes.size': product.size // Find the size within the color
+        },
+        {
+          $inc: {
+            // Decrease the quantity of the specified size in the color array
+            'colors.$.sizes.$[elem].quantity': -product.quantity
+          }
+        },
+        {
+          new: true, // Return the updated document
+          arrayFilters: [{ 'elem.size': product.size }] // Filter the size array to update the correct size
+        }
+      );
+    });
+
+    await Promise.all(updatePromises); // Ensure all updates happen before function exits
+    console.log('Product variants updated successfully');
+  } catch (error) {
+    console.error('Error updating product variant quantities:', error);
+  }
+};
+
+
 // Create a new order
 exports.createOrder = async (req, res) => {
   try {
@@ -58,6 +92,7 @@ exports.createOrder = async (req, res) => {
         await voucher.save();
       }
     }
+    await updateVariantQuantities(products);
     const newOrder = new OrderDetail({
       userId: req.user.id, // Extracted from the authenticated user
       products,
@@ -145,21 +180,52 @@ exports.getOrderById = async (req, res) => {
 };
 
 // Update an order by ID
+const updateSoldQuantities = async (products) => {
+  try {
+    console.log(products)
+    const updatePromises = products.map(async (product) => {
+      return Product.findByIdAndUpdate(
+        product.productId,
+        { $inc: { soldQuantity: product.quantity } },
+        { new: true }
+      );
+    });
+    await Promise.all(updatePromises); // Ensure all updates happen before function exits
+  } catch (error) {
+    console.error('Error updating sold quantities:', error);
+  }
+};
+
 exports.updateOrder = async (req, res) => {
   try {
     const updateData = req.body;
+    const { status, description } = updateData;
 
-    // If status is being updated, add to status history
-    if (updateData.status) {
+    // If status is being updated, add to the status history
+    if (status) {
       updateData.$push = {
         statusHistory: {
-          status: updateData.status,
+          status,
           timestamp: new Date(),
-          description: updateData.description,
+          description,
         },
       };
     }
 
+    // Find the order first
+    const order = await OrderDetail.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+
+    // If status is 'delivered', update the sold quantities of the products
+    if (status === 'Delivered') {
+      // Start updating sold quantities in the background
+      updateSoldQuantities(order.products);
+    }
+
+    // Update the order
     const updatedOrder = await OrderDetail.findOneAndUpdate(
       { _id: req.params.id },
       updateData,
@@ -167,17 +233,17 @@ exports.updateOrder = async (req, res) => {
     );
 
     if (!updatedOrder) {
-      return res
-        .status(404)
-        .json({ message: "Order not found or not authorized." });
+      return res.status(404).json({ message: "Order not found or not authorized." });
     }
 
+    // Send response immediately
     res.status(200).json(updatedOrder);
   } catch (error) {
     console.error("Error updating order:", error);
     res.status(500).json({ message: "Unable to update order." });
   }
 };
+
 
 // Delete an order (optional)
 exports.deleteOrder = async (req, res) => {

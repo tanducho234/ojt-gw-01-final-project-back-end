@@ -132,10 +132,10 @@ exports.getUserCart = async (req, res) => {
       // Tạo giỏ hàng mới nếu chưa tồn tại
       cart = new Cart({ userId, products: [] });
       await cart.save();
-      res.status(200).json([]);//return empty
+      return res.status(200).json([]); // Return empty cart
     }
 
-    // Xử lý dữ liệu giỏ hàng để thêm tên, ảnh và giá
+    // Xử lý dữ liệu giỏ hàng để thêm tên, ảnh, giá và số lượng có sẵn
     const cartWithDetails = await Promise.all(
       cart.products.map(async (item) => {
         // Tìm sản phẩm liên quan
@@ -164,22 +164,28 @@ exports.getUserCart = async (req, res) => {
           );
         }
 
+        // Calculate the price after discount
+        const discountedPrice = sizeDetails.price * (100 - product.salePercentage) / 100;
+
+        // Get the available stock (quantity available)
+        const availableQuantity = sizeDetails.quantity;
+
         return {
           productId: item.productId,
           name: product.name,
           color: item.color,
           size: item.size,
-          quantity: item.quantity,
-          price: (sizeDetails.price*(100-product.salePercentage))/100,
+          quantity: Math.min(item.quantity, availableQuantity),
+          price: discountedPrice,
           imgLink: colorDetails.imgLinks[0], // Lấy ảnh đầu tiên của màu sắc
+          availableQuantity: availableQuantity, // Return available quantity for the product
         };
       })
     );
 
+    // Return the cart with detailed information
     res.status(200).json(cartWithDetails);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to fetch cart.", error: error.message });
+    res.status(500).json({ message: "Failed to fetch cart.", error: error.message });
   }
 };

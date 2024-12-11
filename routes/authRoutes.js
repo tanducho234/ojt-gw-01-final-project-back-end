@@ -85,6 +85,21 @@ router.post("/register", async (req, res) => {
   }
 });
 
+// Admin route to create new user with role
+router.post("/admin/create-user", authenticate, authorize(["admin"]), async (req, res) => {
+  const { email, password, fullName, role } = req.body;
+  try {
+    // Hash password before saving
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const user = new User({ email, password: hashedPassword, fullName, role });
+    await user.save();
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(400).json({ message: "User creation failed", error });
+  }
+});
+
 // Đăng nhập người dùng
 /**
  * @swagger
