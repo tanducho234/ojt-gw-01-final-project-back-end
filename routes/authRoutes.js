@@ -86,19 +86,73 @@ router.post("/register", async (req, res) => {
 });
 
 // Admin route to create new user with role
-router.post("/admin/create-user", authenticate, authorize(["admin"]), async (req, res) => {
-  const { email, password, fullName, role } = req.body;
-  try {
-    // Hash password before saving
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const user = new User({ email, password: hashedPassword, fullName, role });
-    await user.save();
-    res.status(201).json(user);
-  } catch (error) {
-    res.status(400).json({ message: "User creation failed", error });
+router.post(
+  "/admin/create-user",
+  authenticate,
+  authorize(["admin"]),
+  async (req, res) => {
+    const { email, password, fullName, role ,phoneNumber} = req.body;
+    try {
+      // Hash password before saving
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      const user = new User({
+        email,
+        password: hashedPassword,
+        fullName,
+        role,
+        phoneNumber
+      });
+      await user.save();
+      res.status(201).json(user);
+    } catch (error) {
+      res.status(400).json({ message: "User creation failed", error });
+    }
   }
-});
+);
+//admin route to change password
+router.put(
+  "/admin/change-password",
+  authenticate,
+  authorize(["admin"]),
+  async (req, res) => {
+    const { email, password} = req.body;
+    try {
+      // Hash password before saving
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      user.password = hashedPassword;
+      await user.save();
+      res.status(200).json({ message: "Password changed successfully" });
+    } catch (error) {
+      res.status(400).json({ message: "Password change failed", error });
+    }
+  }
+);
+
+//route for admin to delete account
+router.delete(
+  "/admin/delete-account",
+  authenticate,
+  authorize(["admin"]),
+  async (req, res) => {
+    const { id } = req.body;
+    console.log("Deleting account with id:", id);
+    try {
+      const user = await User.findByIdAndDelete(id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.status(200).json({ message: "Account deleted successfully" });
+    } catch (error) {
+      res.status(400).json({ message: "Account deletion failed", error });
+    }
+  }
+);
 
 // Đăng nhập người dùng
 /**
@@ -272,7 +326,8 @@ router.post("/change-password", authenticate, async (req, res) => {
 
     // Kiểm tra mật khẩu hiện tại
     const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Current password is incorrect" });
+    if (!isMatch)
+      return res.status(400).json({ message: "Current password is incorrect" });
 
     // Hash mật khẩu mới
     const salt = await bcrypt.genSalt(10);
@@ -293,7 +348,7 @@ router.get("/all", authenticate, authorize(["admin"]), async (req, res) => {
   try {
     const { role } = req.query;
     let query = {};
-    
+
     if (role) {
       query.role = role;
     }
@@ -304,6 +359,5 @@ router.get("/all", authenticate, authorize(["admin"]), async (req, res) => {
     res.status(500).json({ message: "Error fetching users", error });
   }
 });
-
 
 module.exports = router;

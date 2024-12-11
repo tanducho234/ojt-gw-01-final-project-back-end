@@ -7,6 +7,7 @@ const secretKey = process.env.JWT_SECRET;
 
 // Middleware xác thực JWT
 const authenticate = async (req, res, next) => {
+  console.log("Authenticating request:", req.headers.authorization);
   const token = req.header('Authorization')?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ message: 'Unauthorized' });
 
