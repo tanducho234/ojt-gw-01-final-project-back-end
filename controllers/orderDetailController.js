@@ -21,7 +21,7 @@ exports.getAllOrders = async (req, res) => {
 exports.getShipperOrders = async (req, res) => {
   try {
     const orders = await OrderDetail.find({
-      status: { $nin: ["Pending", "Preparing"] }, // Exclude Pending and Preparing statuses
+      status: { $nin: ["Pending", "Preparing","Canceled"] }, // Exclude Pending and Preparing statuses
     }).sort({ createdAt: -1 }); // Sort by newest first
 
     res.status(200).json(orders);
