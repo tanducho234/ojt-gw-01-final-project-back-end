@@ -1,9 +1,16 @@
 const Product = require("../models/Product");
-
-// Lấy tất cả sản phẩm
 const Brand = require("../models/Brand");
 const Style = require("../models/Style");
 const Category = require("../models/Category");
+const cacheService = require("../services/cacheService");
+
+// Helper function to generate cache key
+const generateCacheKey = (params) => {
+  return `product:${Object.entries(params)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}=${value}`)
+    .join("&")}`;
+};
 
 exports.getAllProducts = async (req, res) => {
   try {
@@ -21,11 +28,20 @@ exports.getAllProducts = async (req, res) => {
       limit = 10,
     } = req.query;
 
+    // Generate cache key based on query parameters
+    const cacheKey = generateCacheKey(req.query);
+
+    // Try to get from cache first
+    const cachedProducts = await cacheService.get(cacheKey);
+    if (cachedProducts) {
+      return res.json(cachedProducts);
+    }
+
     // Build query object
     const query = {};
 
     if (key) {
-      query.name = { $regex: key, $options: "i" }; // Tìm kiếm từ khóa trong tên sản phẩm (không phân biệt chữ hoa/thường)
+      query.name = { $regex: key, $options: "i" };
     }
     if (color) {
       query["colors.color"] = color;
@@ -42,46 +58,53 @@ exports.getAllProducts = async (req, res) => {
     if (brand) {
       query.brandId = brand;
     }
-    // if (price) {
-    //   const [min, max] = price.split("-").map(Number);
-    //   query.price = { $gte: min, $lte: max };
-    // }
 
     // Sorting logic
     const sortOptions = {};
-
     if (sortBy && order) {
-      // Determine if order is asc or desc
       const sortOrder = order.toLowerCase() === "asc" ? 1 : -1;
       sortOptions[sortBy] = sortOrder;
     }
 
     const products = await Product.find(query).sort(sortOptions);
 
+    let filteredProducts = products;
     if (price) {
       const [min, max] = price.split("-").map(Number);
-      // Filter products based on the sale price (after discount)
-      const filteredProducts = products.filter((product) => {
+      filteredProducts = products.filter((product) => {
         const salePrice = product.price * (1 - product.salePercentage / 100);
         return salePrice >= min && salePrice <= max;
       });
-      return res.json(filteredProducts);
     }
 
-    res.json(products);
+    // Cache the results
+    await cacheService.set(cacheKey, filteredProducts);
+
+    res.json(filteredProducts);
   } catch (error) {
     res.status(500).json({ message: "Error fetching products", error });
   }
 };
-// Lấy chi tiết một sản phẩm theo ID
+
 exports.getProductById = async (req, res) => {
   try {
     const { id } = req.params;
+    const cacheKey = `product:${id}`;
+
+    // Try to get from cache first
+    const cachedProduct = await cacheService.get(cacheKey);
+    if (cachedProduct) {
+      return res.status(200).json(cachedProduct);
+    }
+
     const product = await Product.findById(id);
 
     if (!product) {
       return res.status(404).json({ message: "Sản phẩm không tồn tại." });
     }
+
+    // Cache the product
+    await cacheService.set(cacheKey, product);
 
     res.status(200).json(product);
   } catch (error) {
@@ -90,11 +113,13 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-// Thêm mới một sản phẩm
 exports.createProduct = async (req, res) => {
   try {
     const newProduct = new Product(req.body);
     const savedProduct = await newProduct.save();
+
+    // Invalidate all product caches when a new product is created
+    await cacheService.invalidateProductCache();
 
     res.status(201).json(savedProduct);
   } catch (error) {
@@ -103,7 +128,6 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// Cập nhật sản phẩm theo ID
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -115,6 +139,9 @@ exports.updateProduct = async (req, res) => {
       return res.status(404).json({ message: "Sản phẩm không tồn tại." });
     }
 
+    // Invalidate all product caches when a product is updated
+    await cacheService.invalidateProductCache();
+
     res.status(200).json(updatedProduct);
   } catch (error) {
     console.error("Lỗi khi cập nhật sản phẩm:", error);
@@ -122,7 +149,6 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
-// Xóa sản phẩm theo ID
 exports.deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -131,6 +157,9 @@ exports.deleteProduct = async (req, res) => {
     if (!deletedProduct) {
       return res.status(404).json({ message: "Sản phẩm không tồn tại." });
     }
+
+    // Invalidate all product caches when a product is deleted
+    await cacheService.invalidateProductCache();
 
     res.status(200).json({ message: "Xóa sản phẩm thành công." });
   } catch (error) {
@@ -155,20 +184,21 @@ exports.updateColorVariant = async (req, res) => {
       return res.status(404).json({ message: "Product not found." });
     }
 
-    // Check if color exists, update or push new
     const existingColorIndex = product.colors.findIndex(
       (c) => c.color === color
     );
     if (existingColorIndex >= 0) {
-      // Update existing color variant
       product.colors[existingColorIndex].sizes = sizes;
       product.colors[existingColorIndex].imgLinks = imgLinks;
     } else {
-      // Add new color variant
       product.colors.push({ color, sizes, imgLinks });
     }
 
     await product.save();
+
+    // Invalidate all product caches when a color variant is updated
+    await cacheService.invalidateProductCache();
+
     res.status(200).json(product);
   } catch (error) {
     res
