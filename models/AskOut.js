@@ -36,7 +36,6 @@ const askOutSchema = new mongoose.Schema({
   },
   celebrationEmojis: {
     type: [String],
-    default: ['💖','💕','💗','💓','💝','✨','🌸','🎉','😍','🥰','💫','🎊'],
   },
 });
 
