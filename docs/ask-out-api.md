@@ -13,7 +13,8 @@ Base URL: `/api/ask-outs`
   "noLabel": "string",
   "yesTitle": "string",
   "yesSubtext": "string",
-  "yesImageUrl": "string"
+  "yesImageUrl": "string",
+  "backgroundColor": "string"
 }
 ```
 

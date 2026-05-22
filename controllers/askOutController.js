@@ -21,9 +21,9 @@ const getAskOutById = async (req, res) => {
 };
 
 const createAskOut = async (req, res) => {
-  const { question, gifUrl, yesLabel, noLabel, yesTitle, yesSubtext, yesImageUrl } = req.body;
+  const { question, gifUrl, yesLabel, noLabel, yesTitle, yesSubtext, yesImageUrl, backgroundColor } = req.body;
   try {
-    const newAskOut = new AskOut({ question, gifUrl, yesLabel, noLabel, yesTitle, yesSubtext, yesImageUrl });
+    const newAskOut = new AskOut({ question, gifUrl, yesLabel, noLabel, yesTitle, yesSubtext, yesImageUrl, backgroundColor });
     await newAskOut.save();
     res.status(201).json(newAskOut);
   } catch (error) {
@@ -33,11 +33,11 @@ const createAskOut = async (req, res) => {
 
 const updateAskOut = async (req, res) => {
   const { id } = req.params;
-  const { question, gifUrl, yesLabel, noLabel, yesTitle, yesSubtext, yesImageUrl } = req.body;
+  const { question, gifUrl, yesLabel, noLabel, yesTitle, yesSubtext, yesImageUrl, backgroundColor } = req.body;
   try {
     const updated = await AskOut.findByIdAndUpdate(
       id,
-      { question, gifUrl, yesLabel, noLabel, yesTitle, yesSubtext, yesImageUrl },
+      { question, gifUrl, yesLabel, noLabel, yesTitle, yesSubtext, yesImageUrl, backgroundColor },
       { new: true }
     );
     if (!updated) return res.status(404).json({ message: 'Ask-out not found' });

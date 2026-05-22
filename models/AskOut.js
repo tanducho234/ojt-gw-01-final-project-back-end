@@ -23,6 +23,9 @@ const askOutSchema = new mongoose.Schema({
   yesImageUrl: {
     type: String,
   },
+  backgroundColor: {
+    type: String,
+  },
 });
 
 const AskOut = mongoose.model('AskOut', askOutSchema);
