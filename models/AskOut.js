@@ -26,6 +26,18 @@ const askOutSchema = new mongoose.Schema({
   backgroundColor: {
     type: String,
   },
+  yesBtnColor: {
+    type: String,
+    default: '#ff6fa5',
+  },
+  noBtnColor: {
+    type: String,
+    default: '#f0c0d0',
+  },
+  celebrationEmojis: {
+    type: [String],
+    default: ['💖','💕','💗','💓','💝','✨','🌸','🎉','😍','🥰','💫','🎊'],
+  },
 });
 
 const AskOut = mongoose.model('AskOut', askOutSchema);
