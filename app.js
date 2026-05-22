@@ -42,6 +42,7 @@ const emailRoutes = require('./routes/emailRoutes');
 const addressRoutes = require('./routes/addressRoutes');
 const orderDetailRoutes = require('./routes/orderDetailRoutes');
 const vnpayRoutes = require('./routes/vnpayRoutes');
+const askOutRoutes = require('./routes/askOutRoutes');
 
 
 //upload img route
@@ -59,6 +60,7 @@ app.use('/api/addresses', addressRoutes);
 app.use('/api/order-details', orderDetailRoutes);
 
 app.use('/api/vnpay',vnpayRoutes);
+app.use('/api/ask-outs', askOutRoutes);
 
 
 app.get('/', (req, res) => {
